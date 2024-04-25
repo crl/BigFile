@@ -6,8 +6,19 @@ namespace bgf
     {
         static void Main(string[] args)
         {
-           
+            //testWrite();
+            //testExport();
+            testRead();
 
+            Console.WriteLine("All Complete!");
+            Console.ReadLine();
+        }
+
+        /// <summary>
+        /// 测试 打包 大文件
+        /// </summary>
+        private static void testWrite()
+        {
             var writer = new BigFileWriter();
             ///最终 生成的大文件
             var file = "D:/360MoveData/Users/chenronglong/Desktop/bigFile.hpf";
@@ -24,9 +35,15 @@ namespace bgf
             dir = "G:/crl";
             writer.AddDir(dir);
 
-            writer.End();
+            writer.Close();
+        }
 
+        /// <summary>
+        ///  测试 解压大文件
+        /// </summary>
+        private static void testExport(){
 
+            var file = "D:/360MoveData/Users/chenronglong/Desktop/bigFile.hpf";
             var exporter = new BigFileExporter();
 
             exporter.Init(file);
@@ -38,9 +55,21 @@ namespace bgf
             }
             exporter.Export(dest);
 
+            exporter.Close();
+        }
 
-            Console.WriteLine("All Complete!");
-            Console.ReadLine();
+
+        public static void testRead()
+        {
+            var file = "D:/360MoveData/Users/chenronglong/Desktop/bigFile.hpf";
+
+            var reader = new BigFileReader();
+            var b=reader.Init(file);
+
+            var fileVO = reader.Get("iphone/101APPLE/AGIU9693.JPG");
+
+
+            fileVO = reader.Get("ppt/Qin2.0.pptx");
         }
     }
 }

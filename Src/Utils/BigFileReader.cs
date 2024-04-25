@@ -9,7 +9,7 @@ public class BigFileReader
     private BinaryReader reader;
     private BigFile bigFile;
     private Dictionary<string, FileVO> map = new Dictionary<string, FileVO>();
-    public bool Init(string path)
+    public void Init(string path)
     {
         var fs = File.OpenRead(path);
         reader = new BinaryReader(fs);
@@ -18,10 +18,10 @@ public class BigFileReader
         var g = reader.ReadByte();
         var f = reader.ReadByte();
 
-        if (b != 'b' || g != 'g' || f != 'f')
+        if (Utils.IsBigFile(b, g, f)==false)
         {
             Console.WriteLine("非bgf格式文件");
-            return false;
+            return;
         }
 
         ///文件结构
@@ -35,8 +35,6 @@ public class BigFileReader
         {
             map[file.path] = file;
         }
-
-        return true;
     }
 
     public BigFile GetBigFile()

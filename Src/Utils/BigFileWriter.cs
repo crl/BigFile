@@ -55,17 +55,23 @@ public class BigFileWriter
         Console.WriteLine($"花费: {sw.ElapsedMilliseconds} path:{_rootPath}");
     }
 
-    public void End()
+    public void Close()
     {
-        var size = writer.BaseStream.Position;
-        bigFile.Write(writer);
+        if (writer != null)
+        {
+            var size = writer.BaseStream.Position;
+            bigFile.Write(writer);
 
-        ///偏移回去
-        writer.BaseStream.Position = 3;
-        writer.Write((long)size);
+            ///偏移回去
+            writer.BaseStream.Position = 3;
+            writer.Write((long)size);
 
-        writer.Flush();
-        writer.Close();
+            writer.Flush();
+            writer.Close();
+
+            ///不允许它继续写入 破坏文件结构
+            writer = null;
+        }
     }
 
     private string FormatPathHash(string path)

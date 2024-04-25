@@ -1,4 +1,5 @@
-﻿namespace bgf;
+﻿
+namespace bgf;
 
 public static class Utils
 {
@@ -38,5 +39,26 @@ public static class Utils
 
         idx = -1;
         return null;
+    }
+
+    public static bool IsBigFile(byte first, byte second, byte third)
+    {
+        if (first == 'b' && second == 'g' && third == 'f')
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public static bool IsBigFile(string filePath)
+    {
+        var fs = new StreamReader(filePath);
+        var first = fs.Read();
+        var second = fs.Read();
+        var third = fs.Read();
+
+        return IsBigFile(first, second, third);
     }
 }
