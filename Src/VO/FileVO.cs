@@ -2,21 +2,23 @@
 
 public class FileVO
 {
-    public string path;
+    public string name;
     public long position;
     public int size;
 
-    public void Write(BinaryWriter writer)
+    public void Write(BinaryWriter writer, BigFile bigFile)
     {
-        writer.Write(path);
+        var index = bigFile.GetNamesIndex(name);
+        writer.Write7BitEncodedInt(index);
 
         writer.Write7BitEncodedInt64(position);
         writer.Write7BitEncodedInt(size);
     }
 
-    public void Read(BinaryReader reader)
+    public void Read(BinaryReader reader, BigFile bigFile)
     {
-        path = reader.ReadString();
+        var index = reader.Read7BitEncodedInt();
+        name = bigFile.GetNameBy(index);
         position = reader.Read7BitEncodedInt64();
         size = reader.Read7BitEncodedInt();
     }
@@ -24,15 +26,15 @@ public class FileVO
 
 public class DirVO
 {
-    public string path;
+    public string name;
 
-    public List<int> dirs=new List<int>();
-    public List<int> files=new List<int>();
+    public List<int> dirs = new List<int>();
+    public List<int> files = new List<int>();
 
-
-    public void Write(BinaryWriter writer)
+    public void Write(BinaryWriter writer, BigFile bigFile)
     {
-        writer.Write(path);
+        var index = bigFile.GetNamesIndex(name);
+        writer.Write7BitEncodedInt(index);
 
         var len = dirs.Count;
         writer.Write7BitEncodedInt(len);
@@ -49,9 +51,10 @@ public class DirVO
         }
     }
 
-    public void Read(BinaryReader reader)
+    public void Read(BinaryReader reader, BigFile bigFile)
     {
-        path = reader.ReadString();
+        var index = reader.Read7BitEncodedInt();
+        name = bigFile.GetNameBy(index);
 
         var len = reader.Read7BitEncodedInt();
         dirs = new List<int>(len);

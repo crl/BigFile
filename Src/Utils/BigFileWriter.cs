@@ -27,14 +27,14 @@ public class BigFileWriter
         }
 
         sw = new Stopwatch();
+
         bigFile = new BigFile();
-        var fs = new FileStream(path, FileMode.Append);
 
         root = new DirVO();
-        root.path = "";
+        root.name = "";
         bigFile.dirs.Add(root);
 
-
+        var fs = new FileStream(path, FileMode.Append);
         writer = new BinaryWriter(fs);
         writer.BaseStream.Position = 0;
         writer.Write((byte)'b');
@@ -42,7 +42,7 @@ public class BigFileWriter
         writer.Write((byte)'f');
 
         ///占位符，在position=3的地址;
-        writer.Write((ulong)0);
+        writer.Write((long)0);
     }
 
     public void AddDir(string dirStr)
@@ -52,7 +52,7 @@ public class BigFileWriter
         _AddDir(_rootPath, root);
         sw.Stop();
 
-        Console.WriteLine($"花费: {sw.ElapsedMilliseconds} path:{_rootPath}");
+        Console.WriteLine($"花费: {sw.ElapsedMilliseconds} name:{_rootPath}");
     }
 
     public void Close()
@@ -102,7 +102,7 @@ public class BigFileWriter
             }
 
             fileVO = new FileVO();
-            fileVO.path = FormatPathHash(filePath);
+            fileVO.name = Path.GetFileName(filePath);
 
             using (FileStream fsReader = new FileStream(filePath, FileMode.Open))
             {
@@ -148,7 +148,7 @@ public class BigFileWriter
             if (dirVO == null)
             {
                 dirVO = new DirVO();
-                dirVO.path = FormatPathHash(dirPath);
+                dirVO.name = Path.GetFileName(dirPath);
                 bigFile.dirs.Add(dirVO);
                 idx = bigFile.dirs.Count - 1;
             }

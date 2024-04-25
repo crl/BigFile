@@ -6,40 +6,45 @@ namespace bgf;
 /// </summary>
 public class BigFileReader
 {
-    private BinaryReader reader;
-    private BigFile bigFile;
-    private Dictionary<string, FileVO> map = new Dictionary<string, FileVO>();
+    protected BinaryReader reader;
+    protected BigFile bigFile;
+    protected Dictionary<string, FileVO> map = new Dictionary<string, FileVO>();
+    protected long streamOffset;
     public void Init(string path)
     {
         var fs = File.OpenRead(path);
         reader = new BinaryReader(fs);
-
-        var b = reader.ReadByte();
-        var g = reader.ReadByte();
-        var f = reader.ReadByte();
-
-        if (Utils.IsBigFile(b, g, f)==false)
+        var v = Utils.GetBigFile(reader);
+        if (v != null)
         {
-            Console.WriteLine("非bgf格式文件");
-            return;
-        }
-
-        ///文件结构
-        var pos = reader.ReadInt64();
-        reader.BaseStream.Position = pos;
-
-        bigFile = new BigFile();
-        bigFile.Read(reader);
-
-        foreach (var file in bigFile.files)
-        {
-            map[file.path] = file;
+            Init(v, reader, 0);
         }
     }
 
-    public BigFile GetBigFile()
+    public void Init(BigFile bigFile,BinaryReader reader,long offset=0)
     {
-        return bigFile;
+        this.bigFile = bigFile;
+        this.reader = reader;
+        this.streamOffset = offset;
+
+        var root=bigFile.dirs[0];
+        Mapping(root);
+    }
+
+    private void Mapping(DirVO parent,string parentPath="")
+    {
+        foreach (var idx in parent.files)
+        {
+            var vo = this.bigFile.files[idx];
+            var path = parentPath + vo.name;
+            map[path] = vo;
+        }
+
+        foreach (var idx in parent.dirs)
+        {
+            var vo = this.bigFile.dirs[idx];
+            Mapping(vo, parentPath + vo.name + "/");
+        }
     }
 
     public FileVO Get(string filePath)
@@ -55,7 +60,6 @@ public class BigFileReader
             reader.Close();
             reader = null;
         }
-
         map.Clear();
         bigFile = null;
     }

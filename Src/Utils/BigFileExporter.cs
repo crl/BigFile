@@ -12,33 +12,11 @@ public class BigFileExporter
     private BinaryReader reader;
 
     private string rootPath;
-    public bool Init(string path)
+    public void Init(string path)
     {
         var fs = File.OpenRead(path);
         reader = new BinaryReader(fs);
-
-        var b = reader.ReadByte();
-        var g = reader.ReadByte();
-        var f = reader.ReadByte();
-
-        if (b != 'b' || g != 'g' || f != 'f')
-        {
-            Console.WriteLine("非bgf格式文件");
-            return false;
-        }
-
-        ///文件结构
-        var pos = reader.ReadInt64();
-        reader.BaseStream.Position = pos;
-
-        bigFile = new BigFile();
-        bigFile.Read(reader);
-        if (bigFile.dirs.Count == 0)
-        {
-            return false;
-        }
-
-        return true;
+        bigFile = Utils.GetBigFile(reader);
     }
 
     public void Close()
@@ -65,60 +43,73 @@ public class BigFileExporter
         }
 
         var rootDir = bigFile.dirs[0];
-        Export(rootDir);
+        Export(rootDir,"");
     }
 
-    private void Export(DirVO parentDirVO)
+    /// <summary>
+    ///  导出(先导出当前文件，当导当前文件夹)
+    /// </summary>
+    /// <param name="parentDirVO"></param>
+    /// <param name="parentPath"></param>
+    private void Export(DirVO parentDirVO,string parentPath)
     {
         foreach (var idx in parentDirVO.files)
         {
             var fileVO = bigFile.files[idx];
-            var filePath = rootPath + "/" + fileVO.path;
-
+            var filePath = string.Format("{0}/{1}{2}", rootPath, parentPath, fileVO.name);
             if (File.Exists(filePath) && Utils.IsBigFile(filePath))
             {
                 ///todo 合并操作
-
+                var merge = new BigFileMerge();
+                merge.Init(filePath);
+                merge.Merge(fileVO, reader);
+                continue;
             }
-            else
-            {
-                using (FileStream fsWriter = new FileStream(filePath, FileMode.CreateNew))
-                {
-                    reader.BaseStream.Position = fileVO.position;
-                    var totalCount = 0;
-                    while (true)
-                    {
-                        //readCount 这个是保存真正读取到的字节数
-                        int readCount = reader.Read(buffer, 0, buffer.Length);
-                        totalCount += readCount;
-                        if (totalCount > fileVO.size)
-                        {
-                            ///多读了,要回掉多读的部份
-                            var passCount = totalCount - fileVO.size;
-                            readCount -= passCount;
-                        }
-
-                        //开始写入读取到缓存内存中的数据到目标文本文件中
-                        fsWriter.Write(buffer, 0, readCount);
-                        if (totalCount >= fileVO.size || readCount < MB)
-                        {
-                            break; //结束循环
-                        }
-                    }
-                }
-            }
+            Export(fileVO, filePath);
         }
 
         foreach (var idx in parentDirVO.dirs)
         {
             var dirVO = bigFile.dirs[idx];
-            var dir = rootPath + "/" + dirVO.path;
+            var dir = string.Format("{0}/{1}{2}", rootPath, parentPath, dirVO.name);
             if (Directory.Exists(dir) == false)
             {
                 Directory.CreateDirectory(dir);
             }
 
-            Export(dirVO);
+            Export(dirVO, parentPath + dirVO.name + "/");
         }
+    }
+
+    /// <summary>
+    ///  覆盖文件
+    /// </summary>
+    /// <param name="fileVO"></param>
+    /// <param name="filePath"></param>
+    protected void Export(FileVO fileVO, string filePath)
+    {
+        var fsWriter = new FileStream(filePath, FileMode.CreateNew);
+        reader.BaseStream.Position = fileVO.position;
+        var totalCount = 0;
+        while (true)
+        {
+            //readCount 这个是保存真正读取到的字节数
+            int readCount = reader.Read(buffer, 0, buffer.Length);
+            totalCount += readCount;
+            if (totalCount > fileVO.size)
+            {
+                ///多读了,要回掉多读的部份
+                var passCount = totalCount - fileVO.size;
+                readCount -= passCount;
+            }
+
+            //开始写入读取到缓存内存中的数据到目标文本文件中
+            fsWriter.Write(buffer, 0, readCount);
+            if (totalCount >= fileVO.size || readCount < MB)
+            {
+                break; //结束循环
+            }
+        }
+        fsWriter.Close();
     }
 }
