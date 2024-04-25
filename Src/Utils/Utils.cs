@@ -54,10 +54,11 @@ public static class Utils
 
     public static bool IsBigFile(string filePath)
     {
-        var fs = new StreamReader(filePath);
-        var first = fs.Read();
-        var second = fs.Read();
-        var third = fs.Read();
+        var reader = new BinaryReader(new FileStream(filePath, FileMode.Open));
+        var first = reader.ReadByte();
+        var second = reader.ReadByte();
+        var third = reader.ReadByte();
+        reader.Close();
 
         return IsBigFile(first, second, third);
     }

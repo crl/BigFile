@@ -64,7 +64,7 @@ namespace bgf
             var file = "D:/360MoveData/Users/chenronglong/Desktop/bigFile.hpf";
 
             var reader = new BigFileReader();
-            var b=reader.Init(file);
+            reader.Init(file);
 
             var fileVO = reader.Get("iphone/101APPLE/AGIU9693.JPG");
 
