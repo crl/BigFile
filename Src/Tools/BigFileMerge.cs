@@ -53,10 +53,10 @@ class RuntimeMergeFileVO
 
     protected void Init()
     {
-        reader.
+        //reader.
     }
     public int Read(byte[] buff, int offset, int size)
     {
-
+        return -1;
     }
 }
