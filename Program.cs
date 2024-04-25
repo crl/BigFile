@@ -6,7 +6,7 @@ namespace bgf
     {
         static void Main(string[] args)
         {
-            //testWrite();
+            testWrite();
             //testExport();
             testRead();
 
@@ -32,8 +32,8 @@ namespace bgf
             writer.AddDir(dir);
 
             //24G的东西
-            dir = "G:/crl";
-            writer.AddDir(dir);
+            //dir = "G:/crl";
+            //writer.AddDir(dir);
 
             writer.Close();
         }
@@ -70,6 +70,9 @@ namespace bgf
 
 
             fileVO = reader.Get("ppt/Qin2.0.pptx");
+
+
+            fileVO = reader.Get("c/ObliqueFrustum_LensShift.png");
         }
     }
 }
